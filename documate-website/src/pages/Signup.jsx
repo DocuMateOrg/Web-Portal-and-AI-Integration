@@ -1,24 +1,26 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const login = async () => {
+  const signup = async () => {
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
 
-   
-      navigate("/dashboard");
+      alert("Account created successfully!");
+
+      
+      navigate("/login");
     } catch (error) {
-      alert("Login failed: " + error.message);
+      alert("Signup failed: " + error.message);
       console.error(error);
     }
     setLoading(false);
@@ -26,14 +28,17 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-blue-900 to-cyan-700">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-96">
-        <h2 className="text-2xl font-bold text-center mb-6 text-blue-600">
-          DocuMate Login
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-[380px]">
+        <h2 className="text-3xl font-bold text-center mb-2 text-blue-600">
+          Create Account
         </h2>
+        <p className="text-sm text-slate-500 text-center mb-6">
+          Start digitizing your documents today
+        </p>
 
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email address"
           className="w-full p-3 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -48,21 +53,21 @@ export default function Login() {
         />
 
         <button
-          onClick={login}
+          onClick={signup}
           disabled={loading}
           className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Creating account..." : "Sign Up"}
         </button>
 
-       
+      
         <p className="text-sm text-center text-slate-500 mt-6">
-          Don’t have an account?{" "}
+          Already have an account?{" "}
           <span
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/login")}
             className="text-blue-600 font-semibold cursor-pointer hover:underline"
           >
-            Sign Up
+            Login
           </span>
         </p>
       </div>
