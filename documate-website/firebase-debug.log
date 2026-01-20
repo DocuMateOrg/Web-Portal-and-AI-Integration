@@ -1,0 +1,207 @@
+[debug] [2026-01-20T08:37:09.706Z] ----------------------------------------------------------------------
+[debug] [2026-01-20T08:37:09.708Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\sasan\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2026-01-20T08:37:09.708Z] CLI Version:   15.3.1
+[debug] [2026-01-20T08:37:09.708Z] Platform:      win32
+[debug] [2026-01-20T08:37:09.709Z] Node Version:  v23.5.0
+[debug] [2026-01-20T08:37:09.709Z] Time:          Tue Jan 20 2026 14:07:09 GMT+0530 (India Standard Time)
+[debug] [2026-01-20T08:37:09.709Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\sasan\OneDrive\Desktop\5th Sem\Software Group Project\Project\Web-Portal-and-AI-Integration\documate-website
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-01-20T08:39:12.971Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-20T08:39:12.972Z] > authorizing via signed-in user (sasanthisandaruwani@gmail.com)
+[debug] [2026-01-20T08:39:12.972Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:12.973Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:12.973Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=100
+[debug] [2026-01-20T08:39:13.843Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-01-20T08:39:13.843Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] 
+=== Dataconnect Setup
+[info] i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled... 
+[debug] [2026-01-20T08:39:22.918Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:22.918Z] Checked if tokens are valid: true, expires at: 1768901800442
+[info] i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled... 
+[debug] [2026-01-20T08:39:22.918Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:22.918Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:22.918Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-01-20T08:39:22.919Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:39:22.919Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com [none]
+[debug] [2026-01-20T08:39:22.919Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:39:24.866Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-01-20T08:39:24.866Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com [omitted]
+[warn] !  dataconnect: missing required API firebasedataconnect.googleapis.com. Enabling now... 
+[debug] [2026-01-20T08:39:24.868Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:24.868Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:24.868Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com:enable [none]
+[debug] [2026-01-20T08:39:24.868Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com:enable x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:39:24.969Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com 200
+[debug] [2026-01-20T08:39:24.969Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com [omitted]
+[warn] !  dataconnect: missing required API sqladmin.googleapis.com. Enabling now... 
+[debug] [2026-01-20T08:39:24.970Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:24.970Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:24.971Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com:enable [none]
+[debug] [2026-01-20T08:39:24.971Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com:enable x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:39:25.384Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com:enable 200
+[debug] [2026-01-20T08:39:25.384Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firebasedataconnect.googleapis.com:enable [omitted]
+[debug] [2026-01-20T08:39:26.768Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com:enable 200
+[debug] [2026-01-20T08:39:26.768Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/sqladmin.googleapis.com:enable [omitted]
+[debug] [2026-01-20T08:39:36.792Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:36.792Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:36.793Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/-/services [none]
+[debug] [2026-01-20T08:39:38.933Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/-/services 200
+[debug] [2026-01-20T08:39:38.934Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/-/services {}
+[debug] [2026-01-20T08:39:44.847Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:44.847Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:44.847Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/documate-cb843/billingInfo [none]
+[debug] [2026-01-20T08:39:46.447Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/documate-cb843/billingInfo 200
+[debug] [2026-01-20T08:39:46.447Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/documate-cb843/billingInfo {"name":"projects/documate-cb843/billingInfo","projectId":"documate-cb843","billingAccountName":"","billingEnabled":false}
+[debug] [2026-01-20T08:39:46.448Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:46.448Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:46.448Z] >>> [apiv2][query] GET https://monitoring.googleapis.com/v3/projects/documate-cb843/timeSeries/ filter=metric.type%3D%22serviceruntime.googleapis.com%2Fquota%2Fallocation%2Fusage%22+AND+metric.label.quota_metric+%3D+%22sqladmin.googleapis.com%2Ffdc_lifetime_free_trial_per_project%22&interval.endTime=2026-01-20T08%3A39%3A46.447Z&interval.startTime=2026-01-13T08%3A39%3A46.447Z
+[debug] [2026-01-20T08:39:48.047Z] <<< [apiv2][status] GET https://monitoring.googleapis.com/v3/projects/documate-cb843/timeSeries/ 200
+[debug] [2026-01-20T08:39:48.047Z] <<< [apiv2][body] GET https://monitoring.googleapis.com/v3/projects/documate-cb843/timeSeries/ {"unit":"1"}
+[info] +  dataconnect: Detected existing apps . (web) 
+[debug] [2026-01-20T08:39:48.069Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:48.069Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:39:48.070Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/us-east4/services/documate-website/schemas pageSize=100&pageToken=&fields=schemas.name%2Cschemas.datasources%2Cschemas.source
+[debug] [2026-01-20T08:39:50.041Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/us-east4/services/documate-website/schemas 404
+[debug] [2026-01-20T08:39:50.042Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/documate-cb843/locations/us-east4/services/documate-website/schemas {"error":{"code":404,"message":"Resource 'services/documate-website' was not found","status":"NOT_FOUND","details":[{"@type":"type.googleapis.com/google.rpc.ResourceInfo","resourceName":"services/documate-website"}]}}
+[info] +  Wrote dataconnect\dataconnect.yaml 
+[info] +  Wrote dataconnect\seed_data.gql 
+[info] +  Wrote dataconnect\schema\schema.gql 
+[info] +  Wrote dataconnect\example\connector.yaml 
+[info] +  Wrote dataconnect\example\queries.gql 
+[info] +  Wrote dataconnect\example\mutations.gql 
+[info] +  Wrote dataconnect\example\connector.yaml 
+[info] i  dataconnect: Installing the generated SDKs ... 
+[info] i  dataconnect: downloading dataconnect-emulator-3.0.2.exe... {"metadata":{"emulator":{"name":"dataconnect"},"message":"downloading dataconnect-emulator-3.0.2.exe..."}}
+[debug] [2026-01-20T08:39:50.070Z] >>> [apiv2][query] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-amd64-v3.0.2 
+[debug] [2026-01-20T08:39:51.444Z] <<< [apiv2][status] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-amd64-v3.0.2 200
+[debug] [2026-01-20T08:39:51.444Z] <<< [apiv2][body] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-windows-amd64-v3.0.2 [stream]
+[debug] [2026-01-20T08:40:39.959Z] defaultcredentials: writing to file C:\Users\sasan\AppData\Roaming\firebase\sasanthisandaruwani_gmail_com_application_default_credentials.json
+[info] +  dataconnect: Installed generated SDKs for . (web) 
+[info] i  Visit https://firebase.google.com/docs/data-connect/web-sdk#react for more information on how to set up React Generated SDKs for Firebase Data Connect 
+[info] 
+=== Firestore Setup
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-01-20T08:40:44.599Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:44.599Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:44.599Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com [none]
+[debug] [2026-01-20T08:40:44.599Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:40:46.451Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com 200
+[debug] [2026-01-20T08:40:46.451Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com [omitted]
+[warn] !  firestore: missing required API firestore.googleapis.com. Enabling now... 
+[debug] [2026-01-20T08:40:46.452Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:46.452Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:46.452Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com:enable [none]
+[debug] [2026-01-20T08:40:46.452Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com:enable x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:40:48.278Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com:enable 200
+[debug] [2026-01-20T08:40:48.278Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/firestore.googleapis.com:enable [omitted]
+[debug] [2026-01-20T08:40:58.300Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:58.300Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:58.300Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases [none]
+[debug] [2026-01-20T08:40:59.190Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases 200
+[debug] [2026-01-20T08:40:59.191Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases {}
+[debug] [2026-01-20T08:40:59.191Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:59.191Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:40:59.192Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/documate-cb843/locations [none]
+[debug] [2026-01-20T08:40:59.399Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/documate-cb843/locations 200
+[debug] [2026-01-20T08:40:59.399Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/documate-cb843/locations {"locations":[{"name":"projects/documate-cb843/locations/eur3","labels":{"appengine.googleapis.com/geo":"europe-west","cloud.googleapis.com/location":"eur3","cloud.googleapis.com/geo":"eur3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"eur3","displayName":"Europe"},{"name":"projects/documate-cb843/locations/nam5","labels":{"appengine.googleapis.com/geo":"us-central","cloud.googleapis.com/location":"nam5","cloud.googleapis.com/geo":"nam5"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"nam5","displayName":"United States"},{"name":"projects/documate-cb843/locations/nam7","labels":{"cloud.googleapis.com/location":"nam7","cloud.googleapis.com/geo":"nam7"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"nam7","displayName":"United States"},{"name":"projects/documate-cb843/locations/africa-south1","labels":{"cloud.googleapis.com/location":"africa-south1","cloud.googleapis.com/region":"africa-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"africa-south1","displayName":"Johannesburg"},{"name":"projects/documate-cb843/locations/asia-east1","labels":{"appengine.googleapis.com/region":"asia-east1","cloud.googleapis.com/location":"asia-east1","cloud.googleapis.com/region":"asia-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-east1","displayName":"Taiwan"},{"name":"projects/documate-cb843/locations/asia-east2","labels":{"appengine.googleapis.com/region":"asia-east2","cloud.googleapis.com/location":"asia-east2","cloud.googleapis.com/region":"asia-east2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-east2","displayName":"Hong Kong"},{"name":"projects/documate-cb843/locations/asia-northeast1","labels":{"appengine.googleapis.com/region":"asia-northeast1","cloud.googleapis.com/location":"asia-northeast1","cloud.googleapis.com/region":"asia-northeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast1","displayName":"Tokyo"},{"name":"projects/documate-cb843/locations/asia-northeast2","labels":{"appengine.googleapis.com/region":"asia-northeast2","cloud.googleapis.com/location":"asia-northeast2","cloud.googleapis.com/region":"asia-northeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast2","displayName":"Osaka"},{"name":"projects/documate-cb843/locations/asia-northeast3","labels":{"appengine.googleapis.com/region":"asia-northeast3","cloud.googleapis.com/location":"asia-northeast3","cloud.googleapis.com/region":"asia-northeast3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-northeast3","displayName":"Seoul"},{"name":"projects/documate-cb843/locations/asia-south1","labels":{"appengine.googleapis.com/region":"asia-south1","cloud.googleapis.com/location":"asia-south1","cloud.googleapis.com/region":"asia-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-south1","displayName":"Mumbai"},{"name":"projects/documate-cb843/locations/asia-south2","labels":{"cloud.googleapis.com/location":"asia-south2","cloud.googleapis.com/region":"asia-south2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-south2","displayName":"Delhi"},{"name":"projects/documate-cb843/locations/asia-southeast1","labels":{"appengine.googleapis.com/region":"asia-southeast1","cloud.googleapis.com/location":"asia-southeast1","cloud.googleapis.com/region":"asia-southeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-southeast1","displayName":"Singapore"},{"name":"projects/documate-cb843/locations/asia-southeast2","labels":{"appengine.googleapis.com/region":"asia-southeast2","cloud.googleapis.com/location":"asia-southeast2","cloud.googleapis.com/region":"asia-southeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-southeast2","displayName":"Jakarta"},{"name":"projects/documate-cb843/locations/asia-southeast3","labels":{"cloud.googleapis.com/location":"asia-southeast3","cloud.googleapis.com/region":"asia-southeast3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"asia-southeast3","displayName":"Bangkok"},{"name":"projects/documate-cb843/locations/australia-southeast1","labels":{"appengine.googleapis.com/region":"australia-southeast1","cloud.googleapis.com/location":"australia-southeast1","cloud.googleapis.com/region":"australia-southeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"australia-southeast1","displayName":"Sydney"},{"name":"projects/documate-cb843/locations/australia-southeast2","labels":{"cloud.googleapis.com/location":"australia-southeast2","cloud.googleapis.com/region":"australia-southeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"australia-southeast2","displayName":"Melbourne"},{"name":"projects/documate-cb843/locations/europe-central2","labels":{"appengine.googleapis.com/region":"europe-central2","cloud.googleapis.com/location":"europe-central2","cloud.googleapis.com/region":"europe-central2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-central2","displayName":"Warsaw"},{"name":"projects/documate-cb843/locations/europe-north1","labels":{"cloud.googleapis.com/location":"europe-north1","cloud.googleapis.com/region":"europe-north1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-north1","displayName":"Finland"},{"name":"projects/documate-cb843/locations/europe-north2","labels":{"cloud.googleapis.com/location":"europe-north2","cloud.googleapis.com/region":"europe-north2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-north2","displayName":"Stockholm"},{"name":"projects/documate-cb843/locations/europe-southwest1","labels":{"cloud.googleapis.com/location":"europe-southwest1","cloud.googleapis.com/region":"europe-southwest1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-southwest1","displayName":"Madrid"},{"name":"projects/documate-cb843/locations/europe-west1","labels":{"cloud.googleapis.com/location":"europe-west1","cloud.googleapis.com/region":"europe-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west1","displayName":"Belgium"},{"name":"projects/documate-cb843/locations/europe-west10","labels":{"cloud.googleapis.com/location":"europe-west10","cloud.googleapis.com/region":"europe-west10"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west10","displayName":"Berlin"},{"name":"projects/documate-cb843/locations/europe-west12","labels":{"cloud.googleapis.com/location":"europe-west12","cloud.googleapis.com/region":"europe-west12"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west12","displayName":"Turin"},{"name":"projects/documate-cb843/locations/europe-west2","labels":{"appengine.googleapis.com/region":"europe-west2","cloud.googleapis.com/location":"europe-west2","cloud.googleapis.com/region":"europe-west2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west2","displayName":"London"},{"name":"projects/documate-cb843/locations/europe-west3","labels":{"appengine.googleapis.com/region":"europe-west3","cloud.googleapis.com/location":"europe-west3","cloud.googleapis.com/region":"europe-west3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west3","displayName":"Frankfurt"},{"name":"projects/documate-cb843/locations/europe-west4","labels":{"cloud.googleapis.com/location":"europe-west4","cloud.googleapis.com/region":"europe-west4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west4","displayName":"Netherlands"},{"name":"projects/documate-cb843/locations/europe-west6","labels":{"appengine.googleapis.com/region":"europe-west6","cloud.googleapis.com/location":"europe-west6","cloud.googleapis.com/region":"europe-west6"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west6","displayName":"Zurich"},{"name":"projects/documate-cb843/locations/europe-west8","labels":{"cloud.googleapis.com/location":"europe-west8","cloud.googleapis.com/region":"europe-west8"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west8","displayName":"Milan"},{"name":"projects/documate-cb843/locations/europe-west9","labels":{"cloud.googleapis.com/location":"europe-west9","cloud.googleapis.com/region":"europe-west9"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"europe-west9","displayName":"Paris"},{"name":"projects/documate-cb843/locations/me-central1","labels":{"cloud.googleapis.com/location":"me-central1","cloud.googleapis.com/region":"me-central1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-central1","displayName":"Doha"},{"name":"projects/documate-cb843/locations/me-central2","labels":{"cloud.googleapis.com/location":"me-central2","cloud.googleapis.com/region":"me-central2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-central2","displayName":"Dammam"},{"name":"projects/documate-cb843/locations/me-west1","labels":{"cloud.googleapis.com/location":"me-west1","cloud.googleapis.com/region":"me-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"me-west1","displayName":"Tel Aviv"},{"name":"projects/documate-cb843/locations/northamerica-northeast1","labels":{"appengine.googleapis.com/region":"northamerica-northeast1","cloud.googleapis.com/location":"northamerica-northeast1","cloud.googleapis.com/region":"northamerica-northeast1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-northeast1","displayName":"Montréal"},{"name":"projects/documate-cb843/locations/northamerica-northeast2","labels":{"cloud.googleapis.com/location":"northamerica-northeast2","cloud.googleapis.com/region":"northamerica-northeast2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-northeast2","displayName":"Toronto"},{"name":"projects/documate-cb843/locations/northamerica-south1","labels":{"cloud.googleapis.com/location":"northamerica-south1","cloud.googleapis.com/region":"northamerica-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"northamerica-south1","displayName":"Mexico"},{"name":"projects/documate-cb843/locations/southamerica-east1","labels":{"appengine.googleapis.com/region":"southamerica-east1","cloud.googleapis.com/location":"southamerica-east1","cloud.googleapis.com/region":"southamerica-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"southamerica-east1","displayName":"São Paulo"},{"name":"projects/documate-cb843/locations/southamerica-west1","labels":{"cloud.googleapis.com/location":"southamerica-west1","cloud.googleapis.com/region":"southamerica-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"southamerica-west1","displayName":"Santiago"},{"name":"projects/documate-cb843/locations/us-central1","labels":{"cloud.googleapis.com/location":"us-central1","cloud.googleapis.com/region":"us-central1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-central1","displayName":"Iowa"},{"name":"projects/documate-cb843/locations/us-east1","labels":{"appengine.googleapis.com/region":"us-east1","cloud.googleapis.com/location":"us-east1","cloud.googleapis.com/region":"us-east1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east1","displayName":"South Carolina"},{"name":"projects/documate-cb843/locations/us-east4","labels":{"appengine.googleapis.com/region":"us-east4","cloud.googleapis.com/location":"us-east4","cloud.googleapis.com/region":"us-east4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east4","displayName":"Northern Virginia"},{"name":"projects/documate-cb843/locations/us-east5","labels":{"cloud.googleapis.com/location":"us-east5","cloud.googleapis.com/region":"us-east5"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-east5","displayName":"Columbus"},{"name":"projects/documate-cb843/locations/us-south1","labels":{"cloud.googleapis.com/location":"us-south1","cloud.googleapis.com/region":"us-south1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-south1","displayName":"Dallas"},{"name":"projects/documate-cb843/locations/us-west1","labels":{"appengine.googleapis.com/region":"us-west1","cloud.googleapis.com/location":"us-west1","cloud.googleapis.com/region":"us-west1"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west1","displayName":"Oregon"},{"name":"projects/documate-cb843/locations/us-west2","labels":{"appengine.googleapis.com/region":"us-west2","cloud.googleapis.com/location":"us-west2","cloud.googleapis.com/region":"us-west2"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west2","displayName":"Los Angeles"},{"name":"projects/documate-cb843/locations/us-west3","labels":{"appengine.googleapis.com/region":"us-west3","cloud.googleapis.com/location":"us-west3","cloud.googleapis.com/region":"us-west3"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west3","displayName":"Salt Lake City"},{"name":"projects/documate-cb843/locations/us-west4","labels":{"appengine.googleapis.com/region":"us-west4","cloud.googleapis.com/location":"us-west4","cloud.googleapis.com/region":"us-west4"},"metadata":{"@type":"type.googleapis.com/google.firestore.admin.v1.LocationMetadata"},"locationId":"us-west4","displayName":"Las Vegas"}]}
+[info] 
+[info] Firestore Security Rules allow you to define how and when to allow
+[info] requests. You can keep these rules in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2026-01-20T08:42:10.006Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:10.006Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:10.006Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/documate-cb843/releases pageSize=10&pageToken=
+[debug] [2026-01-20T08:42:11.783Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/documate-cb843/releases 200
+[debug] [2026-01-20T08:42:11.784Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/documate-cb843/releases {}
+[info] 
+[info] Firestore indexes allow you to perform complex queries while
+[info] maintaining performance that scales with the size of the result
+[info] set. You can keep index definitions in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2026-01-20T08:42:15.962Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:15.962Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:15.962Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:15.962Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:15.962Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2026-01-20T08:42:15.963Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2026-01-20T08:42:16.352Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/indexes 404
+[debug] [2026-01-20T08:42:16.352Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/indexes {"error":{"code":404,"message":"Project 'documate-cb843' or database '(default)' does not exist.","status":"NOT_FOUND"}}
+[info] +  Wrote firestore.rules 
+[info] +  Wrote firestore.indexes.json 
+[info] 
+=== Genkit Setup
+[debug] [2026-01-20T08:42:16.375Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 404
+[debug] [2026-01-20T08:42:16.375Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/documate-cb843/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"error":{"code":404,"message":"Project 'documate-cb843' or database '(default)' does not exist.","status":"NOT_FOUND"}}
+[warn] !  genkit: Stopped Genkit initialization 
+[info] 
+=== Functions Setup
+[debug] [2026-01-20T08:42:30.419Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-20T08:42:30.419Z] > authorizing via signed-in user (sasanthisandaruwani@gmail.com)
+[debug] [2026-01-20T08:42:30.419Z] [iam] checking project documate-cb843 for permissions ["firebase.projects.get"]
+[debug] [2026-01-20T08:42:30.419Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:30.419Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:30.420Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/documate-cb843:testIamPermissions [none]
+[debug] [2026-01-20T08:42:30.420Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/documate-cb843:testIamPermissions x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:42:30.420Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/documate-cb843:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-01-20T08:42:32.144Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/documate-cb843:testIamPermissions 200
+[debug] [2026-01-20T08:42:32.144Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/documate-cb843:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-01-20T08:42:32.145Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:32.145Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:32.145Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:32.145Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:32.145Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-20T08:42:32.145Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:42:32.146Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/runtimeconfig.googleapis.com [none]
+[debug] [2026-01-20T08:42:32.146Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:42:33.963Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-20T08:42:33.963Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-01-20T08:42:33.963Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:33.963Z] Checked if tokens are valid: true, expires at: 1768901800442
+[debug] [2026-01-20T08:42:33.963Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com:enable [none]
+[debug] [2026-01-20T08:42:33.964Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com:enable x-goog-quota-user=projects/documate-cb843
+[debug] [2026-01-20T08:42:34.000Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/runtimeconfig.googleapis.com 200
+[debug] [2026-01-20T08:42:34.001Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2026-01-20T08:42:35.859Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com:enable 200
+[debug] [2026-01-20T08:42:35.860Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/documate-cb843/services/cloudfunctions.googleapis.com:enable [omitted]
+[info] Let's create a new codebase for your functions.
+[info] A directory corresponding to the codebase will be created in your project
+[info] with sample code pre-configured.
+
+[info] See https://firebase.google.com/docs/functions/organize-functions for
+[info] more information on organizing your functions using codebases.
+
+[info] Functions can be deployed with firebase deploy.
+
+[debug] [2026-01-20T08:44:10.030Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\sasan\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:513:28)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1125:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:264:20)
+    at ReadStream.emit (node:events:525:35)
+    at emitKeys (node:internal/readline/utils:370:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+    at ReadStream.emit (node:events:513:28)
+    at addChunk (node:internal/streams/readable:559:12)
+[error] 
+[error] Error: An unexpected error has occurred.
