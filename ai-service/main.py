@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from google import genai   # ✅ correct library
+from google import genai   
 
 # Load API key from .env
 load_dotenv()

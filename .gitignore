@@ -8,3 +8,7 @@ __pycache__/
 # Node / React
 node_modules/
 build/
+
+*.png
+*.jpg
+*.jpeg
