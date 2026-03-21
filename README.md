@@ -73,4 +73,4 @@ This system combines advanced AI integration with a user-friendly web portal to 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/documate.git
+   (https://github.com/DocuMateOrg/Web-Portal-and-AI-Integration.git)
