@@ -23,7 +23,7 @@ Documate is an AI-powered platform for document processing, enabling:
 
 ### AI Integration (Python + Gemini)
 
-- 🖼 **Image Preprocessing:** Deskew, denoise, brightness correction, binarization  
+- 🖼 **Image Preprocessing:** Denoising, binarization (OpenCV)   
 - 🔎 **Gemini Vision OCR:**  
   - Sinhala & English text extraction  
   - Structure detection  
@@ -46,19 +46,22 @@ Documate is an AI-powered platform for document processing, enabling:
 
 ## 🏗 Sprint Coverage
 
-- **Sprint 1:** Web skeleton & Gemini test  
-- **Sprint 3:** OCR & summary integration  
-- **Sprint 4:** TTS, batch summary & search UI  
-- **Sprint 5:** UI polish & AI accuracy improvements  
+- **Sprint 1:** Web portal setup & Gemini API testing  
+- **Sprint 2:** Image preprocessing & upload readiness  
+- **Sprint 3:** OCR & summarization integration (core pipeline)  
+- **Sprint 4:** TTS, batch processing & search UI *(in progress)*  
+- **Sprint 5:** UI enhancements & AI accuracy improvements *(planned)*   
 
 ---
 
 ## 🛠 Tech Stack
 
 - ⚛️ **Frontend:** React.js  
-- 🐍 **Backend / AI:** Python, Gemini API  
+- 🐍 **Backend / AI:** Python, FastAPI, Gemini API  
+- 🧠 **AI Processing:** OpenCV, NumPy  
+- 🔐 **Authentication:** Firebase Authentication  
 - 💾 **Storage & Search:** Firebase Storage, Elasticsearch  
-- 🔊 **Audio:** Google TTS  
+- 🔊 **Audio:** Google TTS   
 
 ---
 
