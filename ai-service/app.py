@@ -1,11 +1,13 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from preprocess import preprocess_image
 from ocr import extract_text, clean_text
 from summary import generate_summary
-import fitz  # PyMuPDF
-from fastapi.responses import JSONResponse
+from tts import text_to_speech_bytes
+import fitz
+import io
+from fastapi.responses import JSONResponse, StreamingResponse
 from google.genai.errors import ClientError
 
 app = FastAPI()
@@ -21,6 +23,24 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"status": "success", "message": "AI Service is running! Visit /docs to test the API."}
+
+@app.post("/tts")
+async def tts_endpoint(text: str = Form(...), lang: str = Form("en")):
+    """
+    Convert text to speech and return an MP3 audio stream.
+    Accepts: text (the content to speak), lang (language code: en, si)
+    """
+    if not text.strip():
+        return JSONResponse(status_code=400, content={"error": "Text cannot be empty."})
+    try:
+        audio_bytes = text_to_speech_bytes(text.strip(), lang)
+        return StreamingResponse(
+            io.BytesIO(audio_bytes),
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "inline; filename=summary.mp3"},
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"TTS failed: {str(e)}"})
 
 @app.post("/ocr")
 async def ocr_endpoint(files: List[UploadFile] = File(...)):
@@ -193,8 +213,11 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
     # PHASE A – Per-file summary (one AI call per document)               #
     # ------------------------------------------------------------------ #
     per_file_results: list[dict] = []
+    is_single_batch = len(raw_results) == 1
+
     for item in raw_results:
         file_summary = {"summary": "", "tags": [], "category": "other"}
+        
         if item["text"].strip():
             try:
                 file_summary = await generate_summary(item["text"])
@@ -204,6 +227,7 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
                     "tags": [],
                     "category": "other",
                 }
+
         per_file_results.append(
             {
                 "filename": item["filename"],

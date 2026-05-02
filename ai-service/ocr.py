@@ -59,15 +59,15 @@ Return JSON ONLY in this format:
             )
         )
 
-    # Call Gemini (async)
+    # Call Gemini 
     response = await client.aio.models.generate_content(
-        model="gemini-flash-latest",
+        model="gemini-flash-lite-latest",
         contents=contents
     )
 
     raw_text = response.text.strip()
 
-    # Remove any ```json or ``` code fences
+  
     cleaned_text = re.sub(r"^```json\s*|\s*```$", "", raw_text, flags=re.MULTILINE)
 
     try:
@@ -109,7 +109,7 @@ Text:
 \"\"\"{ocr_text}\"\"\"
 """
     response = await client.aio.models.generate_content(
-        model="gemini-flash-latest",
+        model="gemini-flash-lite-latest",
         contents=prompt
     )
 

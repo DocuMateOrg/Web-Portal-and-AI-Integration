@@ -1,18 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { generateTTS } from "../services/api";
 import {
   ArrowLeft, FileText, Layers, ChevronDown, ChevronUp,
-  BarChart2, Globe, CheckCircle, AlertCircle, BookOpen
+  BarChart2, Globe, CheckCircle, AlertCircle, BookOpen, Volume2, Loader2
 } from "lucide-react";
 
-/* ── tiny helpers ─────────────────────────────────────────────────── */
+function AudioPlayer({ text, lang = "en", label = "Listen to Summary" }) {
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState(null);
+  const audioRef = useRef(null);
+
+  useEffect(() => () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }, [audioUrl]);
+
+  const handleGenerate = async () => {
+    if (!text?.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const url = await generateTTS(text, lang);
+      setAudioUrl(url);
+      setTimeout(() => audioRef.current?.play(), 100);
+    } catch (err) {
+      setError(err.message || "TTS failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Volume2 size={15} className="text-blue-500" />
+          <span className="text-xs font-semibold text-slate-600">{label}</span>
+        </div>
+        {!audioUrl && (
+          <button
+            onClick={handleGenerate}
+            disabled={loading}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+          >
+            {loading
+              ? <><Loader2 size={12} className="animate-spin" /> Generating…</>
+              : <><Volume2 size={12} /> Generate Audio</>}
+          </button>
+        )}
+      </div>
+      {error && <p className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
+      {audioUrl && (
+        <audio ref={audioRef} controls className="w-full h-9 rounded-lg" src={audioUrl}>
+          Your browser does not support the audio element.
+        </audio>
+      )}
+    </div>
+  );
+}
+
+
 const Badge = ({ children, color = "blue" }) => {
   const colors = {
-    blue:   "bg-blue-100 text-blue-700",
-    green:  "bg-green-100 text-green-700",
+    blue: "bg-blue-100 text-blue-700",
+    green: "bg-green-100 text-green-700",
     purple: "bg-purple-100 text-purple-700",
-    slate:  "bg-slate-100 text-slate-600",
-    red:    "bg-red-100 text-red-600",
+    slate: "bg-slate-100 text-slate-600",
+    red: "bg-red-100 text-red-600",
   };
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[color]}`}>
@@ -29,7 +82,7 @@ const categoryColor = (cat) => {
   return map[cat] || "slate";
 };
 
-/* ── collapsible card ─────────────────────────────────────────────── */
+
 function FileCard({ item, index }) {
   const [open, setOpen] = useState(false);
   const isSuccess = item.status !== "failed";
@@ -42,9 +95,8 @@ function FileCard({ item, index }) {
         className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-            isSuccess ? "bg-blue-50" : "bg-red-50"
-          }`}>
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSuccess ? "bg-blue-50" : "bg-red-50"
+            }`}>
             {isSuccess
               ? <FileText size={18} className="text-blue-500" />
               : <AlertCircle size={18} className="text-red-400" />}
@@ -115,13 +167,18 @@ function FileCard({ item, index }) {
               </div>
             </div>
           )}
+
+          {/* TTS Audio Player */}
+          {item.summary && item.summary !== "Summary unavailable (rate limit)." && (
+            <AudioPlayer text={item.summary} lang={item.language || "en"} label="🔊 Listen to this summary" />
+          )}
         </div>
       )}
     </div>
   );
 }
 
-/* ── combined summary card ────────────────────────────────────────── */
+
 function CombinedSummarySection({ combinedText, combinedSummary }) {
   const [showText, setShowText] = useState(false);
 
@@ -163,6 +220,11 @@ function CombinedSummarySection({ combinedText, combinedSummary }) {
         <Badge color={categoryColor(combinedSummary.category)}>{combinedSummary.category}</Badge>
       )}
 
+      {/* TTS for combined summary */}
+      {combinedSummary?.summary && combinedSummary.summary !== "Combined summary unavailable (rate limit)." && (
+        <AudioPlayer text={combinedSummary.summary} lang="en" label="🔊 Listen to combined summary" />
+      )}
+
       {/* Raw combined text toggle */}
       {combinedText && (
         <div>
@@ -184,13 +246,13 @@ function CombinedSummarySection({ combinedText, combinedSummary }) {
   );
 }
 
-/* ── main page ────────────────────────────────────────────────────── */
+
 export default function BatchResultView() {
   const location = useLocation();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const data = location.state;
 
-  const [view, setView] = useState("per-file"); // "per-file" | "combined"
+  const [view, setView] = useState("per-file");
 
   if (!data) {
     return (
@@ -214,7 +276,7 @@ export default function BatchResultView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-200 p-6 md:p-10">
 
-      {/* ── Top bar ───────────────────────────────────────────── */}
+
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Batch Results</h1>
@@ -230,7 +292,7 @@ export default function BatchResultView() {
         </button>
       </div>
 
-      {/* ── Stats strip ───────────────────────────────────────── */}
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         {[
           {
@@ -264,31 +326,29 @@ export default function BatchResultView() {
         ))}
       </div>
 
-      {/* ── View toggle ───────────────────────────────────────── */}
+
       <div className="flex gap-2 bg-white/70 backdrop-blur p-1 rounded-xl w-fit mb-6 shadow-sm">
         <button
           onClick={() => setView("per-file")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-            view === "per-file"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${view === "per-file"
               ? "bg-blue-600 text-white shadow"
               : "text-slate-500 hover:text-slate-700"
-          }`}
+            }`}
         >
           <FileText size={15} /> Per-file Results
         </button>
         <button
           onClick={() => setView("combined")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-            view === "combined"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${view === "combined"
               ? "bg-purple-600 text-white shadow"
               : "text-slate-500 hover:text-slate-700"
-          }`}
+            }`}
         >
           <Layers size={15} /> Combined Summary
         </button>
       </div>
 
-      {/* ── Content ───────────────────────────────────────────── */}
+
       {view === "per-file" && (
         <div className="space-y-4">
           {per_file.length === 0 && (

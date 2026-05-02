@@ -9,7 +9,10 @@ export const uploadDocument = async (file) => {
     body: formData,
   });
 
-  if (!response.ok) throw new Error("Upload failed");
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || err.error || "Upload failed");
+  }
   return response.json();
 };
 
@@ -27,4 +30,24 @@ export const batchUpload = async (files) => {
     throw new Error(err.message || "Batch upload failed");
   }
   return response.json();
-};
+};
+
+export const generateTTS = async (text, lang = "en") => {
+  const formData = new FormData();
+  formData.append("text", text);
+  formData.append("lang", lang);
+
+  const response = await fetch(`${AI_BASE}/tts`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || "TTS generation failed");
+  }
+
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+};
+
