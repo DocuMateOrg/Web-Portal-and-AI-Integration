@@ -4,8 +4,8 @@ from gtts import gTTS
 # gTTS language codes for supported languages
 LANG_MAP = {
     "en": "en",
-    "si": "si",      # Sinhala
-    "mixed": "en",   # fallback to English for mixed content
+    "si": "si",    
+    "mixed": "en",   
 }
 
 def text_to_speech_bytes(text: str, lang: str = "en") -> bytes:
