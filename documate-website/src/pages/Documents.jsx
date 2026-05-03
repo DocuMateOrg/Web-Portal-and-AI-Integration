@@ -58,7 +58,8 @@ export default function Documents() {
           data: result,
           category: s.category || "other",
           tags: s.tags || [],
-          summary: s.summary || ""
+          summary: s.summary || "",
+          document_url: result.document_url // Store Firebase URL
         };
         const updated = [newDoc, ...documents];
         setDocuments(updated);
@@ -81,11 +82,13 @@ export default function Documents() {
             // Wrap in the structure DocumentView.jsx expects
             data: { 
               ocr: { text: item.text || item.ocr?.text || "" }, 
-              summary: { summary: summaryText, tags: tagsList, category: cat } 
+              summary: { summary: summaryText, tags: tagsList, category: cat },
+              document_url: item.document_url
             },
             category: cat,
             tags: tagsList,
-            summary: summaryText
+            summary: summaryText,
+            document_url: item.document_url // Store Firebase URL
           };
         });
         

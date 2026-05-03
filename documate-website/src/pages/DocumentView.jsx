@@ -18,9 +18,7 @@ function AudioPlayer({ text, lang = "en" }) {
     setError(null);
     try {
       const url = await generateTTS(text, lang);
-      setAudioUrl(url);
-      // Auto-play once loaded
-      setTimeout(() => audioRef.current?.play(), 100);
+      setAudioUrl(url); // This is now a direct Firebase URL
     } catch (err) {
       setError(err.message || "TTS failed.");
     } finally {
@@ -86,7 +84,7 @@ export default function DocumentView() {
     );
   }
 
-  const { ocr, summary } = data;
+  const { ocr, summary, document_url } = data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-200 p-8">
@@ -94,12 +92,24 @@ export default function DocumentView() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800">📄 Document Analysis</h2>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-white text-blue-600 px-4 py-2 rounded-lg shadow hover:bg-blue-50 transition"
-        >
-          ← Back
-        </button>
+        <div className="flex gap-4">
+          {document_url && (
+            <a
+              href={document_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition font-semibold"
+            >
+              👁 View Original
+            </a>
+          )}
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-white text-blue-600 px-4 py-2 rounded-lg shadow hover:bg-blue-50 transition"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

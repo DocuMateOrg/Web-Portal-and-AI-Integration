@@ -47,7 +47,7 @@ export const generateTTS = async (text, lang = "en") => {
     throw new Error(err.error || "TTS generation failed");
   }
 
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+  const result = await response.json();
+  return result.audio_url; // Return the permanent Firebase URL
 };
 
