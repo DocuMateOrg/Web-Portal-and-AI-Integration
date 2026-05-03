@@ -222,7 +222,7 @@ function CombinedSummarySection({ combinedText, combinedSummary }) {
 
       {/* TTS for combined summary */}
       {combinedSummary?.summary && combinedSummary.summary !== "Combined summary unavailable (rate limit)." && (
-        <AudioPlayer text={combinedSummary.summary} lang="en" label="🔊 Listen to combined summary" />
+        <AudioPlayer text={combinedSummary.summary} lang={batch_info?.language || "en"} label="🔊 Listen to combined summary" />
       )}
 
       {/* Raw combined text toggle */}
