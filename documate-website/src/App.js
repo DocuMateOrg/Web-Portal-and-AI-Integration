@@ -5,7 +5,7 @@ import DocumentView from "./pages/DocumentView";
 import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
-
+import BatchResultView from "./pages/BatchResultView";
 
 function App() {
   return (
@@ -18,6 +18,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/documents/:id" element={<DocumentView />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/batch-result" element={<BatchResultView />} />
       </Routes>
     </BrowserRouter>
   );

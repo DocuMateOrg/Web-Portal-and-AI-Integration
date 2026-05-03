@@ -5,3 +5,6 @@ opencv-python
 numpy
 python-dotenv
 google-genai
+pymupdf
+aiohttp>=3.10.11
+gTTS

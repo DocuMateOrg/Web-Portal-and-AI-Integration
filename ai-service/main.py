@@ -24,7 +24,7 @@ This is a test document. මෙය පරීක්ෂණයක්.
 
 # Generate response
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     contents=prompt
 )
 
