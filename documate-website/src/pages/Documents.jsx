@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { uploadDocument, batchUpload } from "../services/api";
+import { uploadDocument, batchUpload, fetchDocuments, saveDocument, trashDocument } from "../services/api";
 import {
   UploadCloud, FileText, X, CheckCircle2, Trash2, Search, Filter, Loader2, AlertCircle, Tag
 } from "lucide-react";
@@ -15,12 +15,7 @@ export default function Documents() {
   const [mode,      setMode]      = useState(MODE_SINGLE);
   const [files,     setFiles]     = useState([]);       
   
-  const [documents, setDocuments] = useState(() => {
-    try {
-      const saved = localStorage.getItem("documate_docs");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
+  const [documents, setDocuments] = useState([]);
 
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState(null);
@@ -28,9 +23,12 @@ export default function Documents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  useEffect(() => {
-    localStorage.setItem("documate_docs", JSON.stringify(documents));
-  }, [documents]);
+  // Load the library from the backend (Postgres) instead of localStorage
+  const refresh = async () => {
+    try { setDocuments(await fetchDocuments()); }
+    catch (e) { setError("Could not load documents: " + e.message); }
+  };
+  useEffect(() => { refresh(); }, []);
 
   const addFiles = (incoming) => {
     const accepted = Array.from(incoming).filter(f => f.type === "application/pdf" || f.type.startsWith("image/"));
@@ -42,8 +40,12 @@ export default function Documents() {
   };
 
   const removeFile = (name) => setFiles(prev => prev.filter(f => f.name !== name));
-  const deleteDocument = (id) => setDocuments(prev => prev.filter(doc => doc.id !== id));
-  const clearAllDocuments = () => { if (window.confirm("Clear library?")) { setDocuments([]); localStorage.removeItem("documate_docs"); } };
+  const deleteDocument = async (id) => { try { await trashDocument(id); await refresh(); } catch (e) { setError(e.message); } };
+  const clearAllDocuments = async () => {
+    if (!window.confirm("Move all documents to trash?")) return;
+    try { await Promise.all(documents.map(d => trashDocument(d.id))); await refresh(); }
+    catch (e) { setError(e.message); }
+  };
 
   const handleUpload = async () => {
     if (!files.length) return;
@@ -61,9 +63,17 @@ export default function Documents() {
           summary: s.summary || "",
           document_url: result.document_url // Store Firebase URL
         };
-        const updated = [newDoc, ...documents];
-        setDocuments(updated);
-        localStorage.setItem("documate_docs", JSON.stringify(updated));
+        await saveDocument({
+          filename: newDoc.name,
+          fileUrl: newDoc.document_url,
+          text: result.ocr?.text || "",
+          summary: newDoc.summary,
+          tags: newDoc.tags,
+          category: newDoc.category,
+          language: result.ocr?.language,
+          confidence: result.ocr?.confidence,
+        });
+        await refresh();
         setFiles([]);
       } else {
         const result = await batchUpload(files);
@@ -92,10 +102,17 @@ export default function Documents() {
           };
         });
         
-        const updated = [...batchDocs, ...documents];
-        setDocuments(updated);
-        localStorage.setItem("documate_docs", JSON.stringify(updated));
-        
+        for (const d of batchDocs) {
+          await saveDocument({
+            filename: d.name,
+            fileUrl: d.document_url,
+            text: d.data.ocr.text,
+            summary: d.summary,
+            tags: d.tags,
+            category: d.category,
+          });
+        }
+        await refresh();
         setFiles([]);
         navigate("/batch-result", { state: result });
       }

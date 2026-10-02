@@ -1,20 +1,21 @@
 import os
 import json
+import asyncio
+import logging
 from dotenv import load_dotenv
 from google import genai
+from google.genai.errors import ClientError, ServerError
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
-from google.genai.errors import ClientError
+from ocr import _generate_with_fallback, RETRYABLE
 
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+logger = logging.getLogger(__name__)
 
 @retry(
-    wait=wait_exponential(multiplier=2, min=10, max=65), 
-    stop=stop_after_attempt(6), 
-    retry=retry_if_exception_type(ClientError),
+    wait=wait_exponential(multiplier=2, min=5, max=60),
+    stop=stop_after_attempt(4),
+    retry=retry_if_exception_type(RETRYABLE),
     reraise=True
 )
 async def generate_summary(text: str):
@@ -32,13 +33,7 @@ Return JSON ONLY:
 Document:
 {text}
 """
-
-    response = await client.aio.models.generate_content(
-        model="gemini-flash-lite-latest",
-        contents=prompt
-    )
-
-    raw_text = response.text.strip()
+    raw_text = await _generate_with_fallback(prompt)
     
     try:
         # Extract JSON block between first { and last }

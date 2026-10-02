@@ -179,7 +179,7 @@ function FileCard({ item, index }) {
 }
 
 
-function CombinedSummarySection({ combinedText, combinedSummary }) {
+function CombinedSummarySection({ combinedText, combinedSummary, batchInfo }) {
   const [showText, setShowText] = useState(false);
 
   return (
@@ -222,7 +222,7 @@ function CombinedSummarySection({ combinedText, combinedSummary }) {
 
       {/* TTS for combined summary */}
       {combinedSummary?.summary && combinedSummary.summary !== "Combined summary unavailable (rate limit)." && (
-        <AudioPlayer text={combinedSummary.summary} lang={batch_info?.language || "en"} label="🔊 Listen to combined summary" />
+        <AudioPlayer text={combinedSummary.summary} lang={batchInfo?.language || "en"} label="🔊 Listen to combined summary" />
       )}
 
       {/* Raw combined text toggle */}
@@ -361,7 +361,7 @@ export default function BatchResultView() {
       )}
 
       {view === "combined" && (
-        <CombinedSummarySection combinedText={combined_text} combinedSummary={combined_summary} />
+        <CombinedSummarySection combinedText={combined_text} combinedSummary={combined_summary} batchInfo={batch_info} />
       )}
     </div>
   );

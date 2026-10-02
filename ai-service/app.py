@@ -10,7 +10,7 @@ from tts import text_to_speech_bytes
 import fitz
 import io
 from fastapi.responses import JSONResponse, StreamingResponse
-from google.genai.errors import ClientError
+from google.genai.errors import ClientError, ServerError
 from firebase_utils import upload_to_firebase, upload_bytes_to_firebase
 import tempfile
 import os
@@ -140,7 +140,7 @@ async def ocr_endpoint(files: List[UploadFile] = File(...)):
     try:
         cleaned = await clean_text(combined_text)
         summary_result = await generate_summary(cleaned.get("cleaned_text", combined_text))
-    except ClientError as e:
+    except (ClientError, ServerError) as e:
         cleaned = {"cleaned_text": combined_text, "language": final_language}
         summary_result = {"summary": "Summary unavailable due to API rate limits.", "tags": [], "category": "other"}
 
@@ -230,13 +230,13 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
     try:
         for file in files:
             raw_results.append(await _ocr_file(file))
-    except ClientError as e:
+    except (ClientError, ServerError) as e:
         return JSONResponse(
             status_code=429,
             content={
                 "status": "error",
                 "message": f"Gemini API Error: {str(e)}",
-                "details": "Daily API quota exceeded. Please try again later.",
+                "details": "Daily API quota exceeded or model overloaded. Please try again later.",
             },
         )
 
@@ -249,9 +249,9 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
         if item["text"].strip():
             try:
                 file_summary = await generate_summary(item["text"])
-            except ClientError:
+            except (ClientError, ServerError):
                 file_summary = {
-                    "summary": "Summary unavailable (rate limit).",
+                    "summary": "Summary unavailable (rate limit or model overloaded).",
                     "tags": [],
                     "category": "other",
                 }
@@ -291,9 +291,9 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
             combined_summary = await generate_summary(
                 cleaned.get("cleaned_text", combined_text)
             )
-        except ClientError:
+        except (ClientError, ServerError):
             combined_summary = {
-                "summary": "Combined summary unavailable (rate limit).",
+                "summary": "Combined summary unavailable (rate limit or model overloaded).",
                 "tags": [],
                 "category": "other",
             }
