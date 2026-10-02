@@ -1,14 +1,10 @@
-# Ignore environment files
+node_modules/
 .env
-
-# Python
+**/.env
+serviceAccountKey.json
 __pycache__/
 *.pyc
-
-# Node / React
-node_modules/
+venv/
+ai-service/uploads/
+*.mp3
 build/
-
-*.png
-*.jpg
-*.jpeg

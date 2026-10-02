@@ -4,8 +4,8 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
-const bucket = require('../firebase');
-const db = require('../server'); // pool exported from server.js
+const { bucket } = require('../firebase');
+const db = require('../db');
 
 // POST /api/ocr/process
 // Body: { documentId: number, storagePath: string, tesseractLang?: string }

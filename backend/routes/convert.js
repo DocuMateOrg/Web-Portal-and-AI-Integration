@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
 const multer = require('multer');
-const bucket = require('../firebase');
+const { bucket } = require('../firebase');
 
 const upload = multer({ dest: path.join(os.tmpdir(), 'uploads') });
 

@@ -195,99 +195,41 @@ router.get('/search', [ query('q').isString().notEmpty() ], async (req, res) => 
   }
 });
 
-  // Elastic search endpoint
-  router.get('/es-search', [ query('q').isString().notEmpty() ], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+// Elastic search endpoints (top-level, not nested)
+function esHits(esRes){ return (esRes.hits&&esRes.hits.hits)?esRes.hits.hits.map(h=>({id:h._id,score:h._score,...h._source})):[]; }
+const INDEX = () => process.env.ELASTIC_INDEX || 'documents';
 
-    const q = req.query.q;
-    try {
-      const { client } = require('../services/elastic');
-      const esRes = await client.search({
-        index: process.env.ELASTIC_INDEX || 'documents',
-        body: {
-          query: {
-            multi_match: {
-              query: q,
-              fields: ['summary^2','extracted_text']
-            }
-          }
-        }
-      });
+router.get('/es-search', [ query('q').isString().notEmpty() ], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  try {
+    const { client } = require('../services/elastic');
+    const esRes = await client.search({ index: INDEX(), body: { query: { multi_match: { query: req.query.q, fields: ['summary^2','extracted_text'] } } } });
+    res.json({ results: esHits(esRes) });
+  } catch (err) { console.error('Elastic search error', err.message); res.status(500).json({ error: 'Search failed' }); }
+});
 
-      // ES keyword search (exact / keyword fields)
-      // GET /api/documents/es-keyword?term=invoice
-      router.get('/es-keyword', [ query('term').isString().notEmpty() ], async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+router.get('/es-keyword', [ query('term').isString().notEmpty() ], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  try {
+    const { client } = require('../services/elastic');
+    const term = req.query.term;
+    const esRes = await client.search({ index: INDEX(), body: { query: { bool: { should: [
+      { term: { tags: { value: term } } }, { term: { filename: { value: term } } }, { match_phrase: { summary: { query: term } } } ] } } } });
+    res.json({ results: esHits(esRes) });
+  } catch (err) { console.error('Elastic keyword search error', err.message); res.status(500).json({ error: 'Search failed' }); }
+});
 
-        const term = req.query.term;
-        try {
-          const { client } = require('../services/elastic');
-          const esRes = await client.search({
-            index: process.env.ELASTIC_INDEX || 'documents',
-            body: {
-              query: {
-                bool: {
-                  should: [
-                    { term: { 'tags': { value: term } } },
-                    { term: { 'filename.keyword': { value: term } } },
-                    { match_phrase: { 'summary': { query: term } } }
-                  ]
-                }
-              }
-            }
-          });
-
-          const hits = (esRes.hits && esRes.hits.hits) ? esRes.hits.hits.map(h => ({ id: h._id, score: h._score, ...h._source })) : [];
-          res.json({ results: hits });
-        } catch (err) {
-          console.error('Elastic keyword search error', err);
-          res.status(500).json({ error: 'Search failed' });
-        }
-      });
-
-      // ES fuzzy search (approximate matching)
-      // GET /api/documents/es-fuzzy?q=invocie&fuzziness=1
-      router.get('/es-fuzzy', [ query('q').isString().notEmpty(), query('fuzziness').optional() ], async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
-        const q = req.query.q;
-        const fuzziness = req.query.fuzziness || 'AUTO';
-        try {
-          const { client } = require('../services/elastic');
-          const esRes = await client.search({
-            index: process.env.ELASTIC_INDEX || 'documents',
-            body: {
-              query: {
-                multi_match: {
-                  query: q,
-                  fields: ['summary^2','extracted_text'],
-                  fuzziness: fuzziness,
-                  operator: 'and'
-                }
-              }
-            }
-          });
-
-          const hits = (esRes.hits && esRes.hits.hits) ? esRes.hits.hits.map(h => ({ id: h._id, score: h._score, ...h._source })) : [];
-          res.json({ results: hits });
-        } catch (err) {
-          console.error('Elastic fuzzy search error', err);
-          res.status(500).json({ error: 'Search failed' });
-        }
-      });
-
-      const hits = (esRes.hits && esRes.hits.hits) ? esRes.hits.hits.map(h => ({ id: h._id, score: h._score, ...h._source })) : [];
-      res.json({ results: hits });
-    } catch (err) {
-      console.error('Elastic search error', err);
-      res.status(500).json({ error: 'Search failed' });
-    }
-  });
-
-  module.exports = router;
+router.get('/es-fuzzy', [ query('q').isString().notEmpty(), query('fuzziness').optional() ], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  try {
+    const { client } = require('../services/elastic');
+    const esRes = await client.search({ index: INDEX(), body: { query: { multi_match: { query: req.query.q, fields: ['summary^2','extracted_text'], fuzziness: req.query.fuzziness || 'AUTO', operator: 'and' } } } });
+    res.json({ results: esHits(esRes) });
+  } catch (err) { console.error('Elastic fuzzy search error', err.message); res.status(500).json({ error: 'Search failed' }); }
+});
 
   // --- Batch summary endpoint ---
   // POST /api/documents/batch-summary
@@ -333,3 +275,62 @@ router.get('/search', [ query('q').isString().notEmpty() ], async (req, res) => 
 
     res.json({ results });
   });
+
+// ---------- Integration endpoints (frontend <-> backend) ----------
+
+// GET /api/documents?status=processed|trashed
+// Only returns documents that belong to the caller's groups (group-based access control)
+router.get('/', async (req, res) => {
+  const status = req.query.status === 'trashed' ? 'trashed' : 'processed';
+  try {
+    const r = await db.query(
+      `SELECT d.id, d.filename, d.file_url, d.summary, d.extracted_text, d.category,
+              d.language, d.confidence, d.audio_url, d.status, d.created_at, d.group_id,
+              COALESCE(array_agg(t.name) FILTER (WHERE t.name IS NOT NULL), '{}') AS tags
+         FROM documents d
+         LEFT JOIN document_tags dt ON dt.document_id = d.id
+         LEFT JOIN tags t ON t.id = dt.tag_id
+        WHERE d.status = $1
+          AND (d.uploader_id = $2
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+        GROUP BY d.id
+        ORDER BY d.created_at DESC`,
+      [status, req.user.id]);
+    res.json({ documents: r.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to list documents' });
+  }
+});
+
+// POST /api/documents/save  - store one result produced by the AI service
+// body: { filename, fileUrl, text, summary, tags[], category, language, confidence, audioUrl?, groupId? }
+router.post('/save', requirePerm('upload'), [ body('filename').isString().notEmpty() ], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { filename, fileUrl, text, summary, tags, category, language, confidence, audioUrl, groupId } = req.body;
+  const slug = slugify(filename, { lower: true, strict: true }) + '-' + Date.now(); // unique even for same filename
+  try {
+    const ins = await db.query(
+      `INSERT INTO documents(filename,file_url,group_id,uploader_id,status,extracted_text,summary,category,language,confidence,audio_url,slug)
+       VALUES($1,$2,$3,$4,'processed',$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+      [filename, fileUrl || null, groupId || null, req.user.id, text || null, summary || null,
+       category || null, language || null, confidence ?? null, audioUrl || null, slug]);
+    const id = ins.rows[0].id;
+
+    const tagNames = Array.isArray(tags) ? tags.map(t => String(t).trim().toLowerCase()).filter(Boolean) : [];
+    for (const t of tagNames) {
+      const tagId = await getOrCreateTag(t);
+      await db.query('INSERT INTO document_tags(document_id, tag_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [id, tagId]);
+    }
+    try {   // search index is optional - never fail the save because of it
+      await indexDocument(id, { filename, summary: summary || null, extracted_text: text || null, tags: tagNames, group_id: groupId || null });
+    } catch (e) { console.warn('Elastic index skipped:', e.message); }
+
+    res.json({ id, message: 'Saved' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save document' });
+  }
+});

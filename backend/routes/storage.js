@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bucket = require('../firebase');
+const { bucket } = require('../firebase');
 
 // Download a file from Firebase Storage and stream it to the client.
 // Query: ?path=folder/name.pdf or provide the full object path in the bucket.

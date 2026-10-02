@@ -1,23 +1,16 @@
-const express = require("express");
-const app = express();
+require('dotenv').config();
+const { Pool } = require('pg');
 
-app.use(express.json());
-
-const documentRoutes = require("./routes/documents");
-const auth = require('./middleware/auth');
-app.use(auth);
-const permission = require('./middleware/permissions');
-app.use("/api/documents", documentRoutes);
-
-const groupsRoutes = require('./routes/groups');
-app.use('/api/groups', groupsRoutes);
-const storageRoutes = require("./routes/storage");
-app.use("/api/storage", storageRoutes);
-const ocrRoutes = require("./routes/ocr");
-app.use("/api/ocr", ocrRoutes);
-const convertRoutes = require('./routes/convert');
-app.use('/api/convert', convertRoutes);
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+// Reads DATABASE_URL (preferred) or the individual PG* variables from .env
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        user: process.env.PGUSER || 'postgres',
+        host: process.env.PGHOST || 'localhost',
+        database: process.env.PGDATABASE || 'documents',
+        password: process.env.PGPASSWORD,
+        port: Number(process.env.PGPORT || 5432),
+      }
+);
+module.exports = pool;
