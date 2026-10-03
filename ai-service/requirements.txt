@@ -1,10 +1,11 @@
 fastapi
 uvicorn
 python-multipart
-opencv-python
+opencv-python-headless
 numpy
 python-dotenv
 google-genai
+supabase
 pymupdf
 aiohttp>=3.10.11
 gTTS

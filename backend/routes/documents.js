@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
-const { indexDocument } = require('../services/elastic');
+const { indexDocument, deleteDocument: deleteIndexedDocument } = require('../services/elastic');
+const { deleteSupabaseObjects } = require('../services/supabaseStorage');
 const { body, validationResult, query } = require('express-validator');
 const slugify = require('slugify');
 
@@ -39,17 +40,258 @@ router.post("/upload", requirePerm('upload'), async (req, res) => {
 });
 
 router.put("/:id/trash", async (req, res) => {
-  await db.query("UPDATE documents SET status='trashed' WHERE id=$1", [
-    req.params.id,
-  ]);
-  res.json({ message: "Trashed" });
+  try {
+    const result = await db.query(
+      `UPDATE documents AS d
+          SET status = 'trashed'
+        WHERE d.id = $1
+          AND d.status = 'processed'
+          AND (d.uploader_id = $2
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+        RETURNING d.id`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Document not found" });
+    res.json({ message: "Trashed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to move document to trash" });
+  }
+});
+
+router.put("/:id/starred", body('starred').isBoolean(), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const result = await db.query(
+      `UPDATE documents AS d
+          SET starred = $1
+        WHERE d.id = $2
+          AND d.status = 'processed'
+          AND (d.uploader_id = $3
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $3))
+        RETURNING d.starred`,
+      [req.body.starred === true || req.body.starred === 'true', req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Document not found" });
+    res.json({ starred: result.rows[0].starred });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update starred status" });
+  }
 });
 
 router.put("/:id/restore", async (req, res) => {
-  await db.query("UPDATE documents SET status='processed' WHERE id=$1", [
-    req.params.id,
-  ]);
-  res.json({ message: "Restored" });
+  try {
+    const result = await db.query(
+      `UPDATE documents AS d
+          SET status = 'processed'
+        WHERE d.id = $1
+          AND d.status = 'trashed'
+          AND (d.uploader_id = $2
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+        RETURNING d.id`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Document not found" });
+    res.json({ message: "Restored" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to restore document" });
+  }
+});
+
+router.put("/:id/audio", body('audioUrl').isURL({ protocols: ['https'], require_protocol: true }), async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const audioUrl = new URL(req.body.audioUrl);
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const bucketName = process.env.SUPABASE_BUCKET || 'documents';
+    if (!supabaseUrl) {
+      return res.status(503).json({ error: "Supabase Storage is not configured" });
+    }
+
+    const supabaseOrigin = new URL(supabaseUrl).origin;
+    const audioPrefix = `/storage/v1/object/public/${bucketName}/audio/`;
+    if (audioUrl.origin !== supabaseOrigin || !audioUrl.pathname.startsWith(audioPrefix)) {
+      return res.status(400).json({ error: "Audio URL must point to the configured Supabase audio folder" });
+    }
+
+    const result = await db.query(
+      `UPDATE documents AS d
+          SET audio_url = $1
+        WHERE d.id = $2
+          AND d.status = 'processed'
+          AND (d.uploader_id = $3
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $3))
+        RETURNING d.audio_url`,
+      [audioUrl.toString(), req.params.id, req.user.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Document not found" });
+    res.json({ audioUrl: result.rows[0].audio_url });
+  } catch (err) {
+    console.error('Document audio URL update failed:', err.message || err);
+    res.status(500).json({ error: "Failed to save document audio" });
+  }
+});
+
+router.put(
+  "/combined-audio",
+  [
+    body('audioUrl').isURL({ protocols: ['https'], require_protocol: true }),
+    body('documentIds').isArray({ min: 1 }),
+    body('documentIds.*').isInt({ min: 1 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const documentIds = [...new Set(req.body.documentIds.map(Number))];
+    if (!documentIds.length) {
+      return res.status(400).json({ error: "At least one document ID is required" });
+    }
+
+    try {
+      const audioUrl = new URL(req.body.audioUrl);
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const bucketName = process.env.SUPABASE_BUCKET || 'documents';
+      if (!supabaseUrl) {
+        return res.status(503).json({ error: "Supabase Storage is not configured" });
+      }
+
+      const supabaseOrigin = new URL(supabaseUrl).origin;
+      const audioPrefix = `/storage/v1/object/public/${bucketName}/audio/`;
+      if (audioUrl.origin !== supabaseOrigin || !audioUrl.pathname.startsWith(audioPrefix)) {
+        return res.status(400).json({ error: "Audio URL must point to the configured Supabase audio folder" });
+      }
+
+      const client = await db.connect();
+      try {
+        await client.query('BEGIN');
+        const existing = await client.query(
+          `SELECT d.id, d.combined_audio_url
+             FROM documents AS d
+            WHERE d.id = ANY($1::int[])
+              AND d.status = 'processed'
+              AND (d.uploader_id = $2
+                   OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+            FOR UPDATE`,
+          [documentIds, req.user.id]
+        );
+        if (existing.rows.length !== documentIds.length) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ error: "One or more documents were not found" });
+        }
+
+        await client.query(
+          `UPDATE documents
+              SET combined_audio_url = $1
+            WHERE id = ANY($2::int[])`,
+          [audioUrl.toString(), documentIds]
+        );
+        await client.query('COMMIT');
+
+        const previousUrls = [...new Set(
+          existing.rows
+            .map(row => row.combined_audio_url)
+            .filter(url => url && url !== audioUrl.toString())
+        )];
+        for (const previousUrl of previousUrls) {
+          const references = await db.query(
+            "SELECT 1 FROM documents WHERE combined_audio_url = $1 LIMIT 1",
+            [previousUrl]
+          );
+          if (!references.rows.length) {
+            await deleteSupabaseObjects([previousUrl]);
+          }
+        }
+
+        res.json({ audioUrl: audioUrl.toString() });
+      } catch (err) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('Combined audio save rollback error:', rollbackError.message || rollbackError);
+        }
+        throw err;
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.error('Combined document audio save failed:', err.message || err);
+      res.status(500).json({ error: "Failed to save combined summary audio" });
+    }
+  }
+);
+
+router.delete("/:id", async (req, res) => {
+  let client;
+  let transactionStarted = false;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    transactionStarted = true;
+
+    const result = await client.query(
+      `SELECT d.id, d.file_url, d.audio_url, d.combined_audio_url
+         FROM documents AS d
+        WHERE d.id = $1
+          AND d.status = 'trashed'
+          AND (d.uploader_id = $2
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+        FOR UPDATE`,
+      [req.params.id, req.user.id]
+    );
+    if (!result.rows.length) {
+      await client.query('ROLLBACK');
+      transactionStarted = false;
+      return res.status(404).json({ error: "Document not found in trash" });
+    }
+
+    const { file_url, audio_url, combined_audio_url } = result.rows[0];
+    let combinedAudioStillReferenced = false;
+    if (combined_audio_url) {
+      const references = await client.query(
+        "SELECT 1 FROM documents WHERE combined_audio_url = $1 AND id <> $2 LIMIT 1",
+        [combined_audio_url, req.params.id]
+      );
+      combinedAudioStillReferenced = references.rows.length > 0;
+    }
+
+    await deleteSupabaseObjects([
+      file_url,
+      audio_url,
+      combinedAudioStillReferenced ? null : combined_audio_url,
+    ]);
+    await client.query(
+      "DELETE FROM documents WHERE id = $1 AND status = 'trashed'",
+      [req.params.id]
+    );
+    await client.query('COMMIT');
+    transactionStarted = false;
+
+    try {
+      await deleteIndexedDocument(req.params.id);
+    } catch (err) {
+      console.error('Elastic index deletion error:', err.message || err);
+    }
+    res.json({ message: "Document permanently deleted" });
+  } catch (err) {
+    if (transactionStarted) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('Document deletion rollback error:', rollbackError.message || rollbackError);
+      }
+    }
+    console.error('Permanent document deletion failed:', err.message || err);
+    res.status(500).json({ error: "Failed to permanently delete document" });
+  } finally {
+    if (client) client.release();
+  }
 });
 
 module.exports = router;
@@ -179,14 +421,26 @@ router.get('/search', [ query('q').isString().notEmpty() ], async (req, res) => 
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  const q = req.query.q;
+  const q = String(req.query.q).trim();
+  if (!q) return res.status(400).json({ error: "Search query cannot be empty" });
   try {
-    // Use plainto_tsquery for safer input
     const result = await db.query(
-      `SELECT id, filename, summary, ts_rank_cd(search_vector, plainto_tsquery('english', $1)) AS rank
-       FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY rank DESC LIMIT 50`,
-      [q]
+      `SELECT d.id, d.filename, d.file_url, d.summary, d.extracted_text, d.category,
+              d.language, d.confidence, d.audio_url, d.status, d.created_at, d.group_id, d.starred,
+              COALESCE(array_agg(t.name) FILTER (WHERE t.name IS NOT NULL), '{}') AS tags,
+              COALESCE(ts_rank_cd(d.search_vector, plainto_tsquery('english', $1)), 0) AS rank
+         FROM documents d
+         LEFT JOIN document_tags dt ON dt.document_id = d.id
+         LEFT JOIN tags t ON t.id = dt.tag_id
+        WHERE d.status = 'processed'
+          AND (d.search_vector @@ plainto_tsquery('english', $1)
+               OR d.filename ILIKE '%' || $1 || '%')
+          AND (d.uploader_id = $2
+               OR d.group_id IN (SELECT group_id FROM user_groups WHERE user_id = $2))
+        GROUP BY d.id
+        ORDER BY rank DESC, d.created_at DESC
+        LIMIT 50`,
+      [q, req.user.id]
     );
     res.json({ results: result.rows });
   } catch (err) {
@@ -285,7 +539,7 @@ router.get('/', async (req, res) => {
   try {
     const r = await db.query(
       `SELECT d.id, d.filename, d.file_url, d.summary, d.extracted_text, d.category,
-              d.language, d.confidence, d.audio_url, d.status, d.created_at, d.group_id,
+              d.language, d.confidence, d.audio_url, d.status, d.created_at, d.group_id, d.starred,
               COALESCE(array_agg(t.name) FILTER (WHERE t.name IS NOT NULL), '{}') AS tags
          FROM documents d
          LEFT JOIN document_tags dt ON dt.document_id = d.id
@@ -305,18 +559,22 @@ router.get('/', async (req, res) => {
 
 // POST /api/documents/save  - store one result produced by the AI service
 // body: { filename, fileUrl, text, summary, tags[], category, language, confidence, audioUrl?, groupId? }
-router.post('/save', requirePerm('upload'), [ body('filename').isString().notEmpty() ], async (req, res) => {
+router.post('/save', requirePerm('upload'), [
+  body('filename').isString().notEmpty(),
+  body('fileSize').optional().isInt({ min: 0 }),
+], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { filename, fileUrl, text, summary, tags, category, language, confidence, audioUrl, groupId } = req.body;
+  const fileSize = req.body.fileSize ?? null;
   const slug = slugify(filename, { lower: true, strict: true }) + '-' + Date.now(); // unique even for same filename
   try {
     const ins = await db.query(
-      `INSERT INTO documents(filename,file_url,group_id,uploader_id,status,extracted_text,summary,category,language,confidence,audio_url,slug)
-       VALUES($1,$2,$3,$4,'processed',$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+      `INSERT INTO documents(filename,file_url,group_id,uploader_id,status,extracted_text,summary,category,language,confidence,audio_url,slug,file_size)
+       VALUES($1,$2,$3,$4,'processed',$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
       [filename, fileUrl || null, groupId || null, req.user.id, text || null, summary || null,
-       category || null, language || null, confidence ?? null, audioUrl || null, slug]);
+       category || null, language || null, confidence ?? null, audioUrl || null, slug, fileSize]);
     const id = ins.rows[0].id;
 
     const tagNames = Array.isArray(tags) ? tags.map(t => String(t).trim().toLowerCase()).filter(Boolean) : [];

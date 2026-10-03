@@ -15,6 +15,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 ENV NODE_ENV=production
-EXPOSE 8080
+# Render/Railway inject PORT at runtime; this is just documentation
+EXPOSE 4000
 
 CMD ["npm", "start"]
