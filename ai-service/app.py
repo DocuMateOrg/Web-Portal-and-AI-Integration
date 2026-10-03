@@ -384,3 +384,10 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
         "combined_text": combined_text,
         "combined_summary": combined_summary,
     }
+
+# Hugging Face Spaces (Gradio SDK) runs `python app.py` — this block
+# starts the FastAPI server on the required port 7860.
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port)
