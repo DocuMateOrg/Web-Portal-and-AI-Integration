@@ -72,7 +72,7 @@ if not os.path.exists("uploads"):
     os.makedirs("uploads")
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
-@app.get("/")
+@app.get("/health")
 def read_root():
     return {"status": "success", "message": "AI Service is running! Visit /docs to test the API."}
 
@@ -385,8 +385,22 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
         "combined_summary": combined_summary,
     }
 
-# Hugging Face Spaces (Gradio SDK) runs `python app.py` — this block
-# starts the FastAPI server on the required port 7860.
+# ── Hugging Face Gradio SDK integration ──────────────────────────────────────
+# HF Gradio Spaces expect a Gradio "demo" at module level AND check the /info
+# endpoint for liveness.  We mount a minimal Gradio Blocks at the root path
+# so those checks pass, while all our FastAPI routes (/ocr /tts /batch…)
+# remain available on the same server.
+import gradio as gr
+
+with gr.Blocks(title="DocuMate AI Service") as demo:
+    gr.Markdown("# 🤖 DocuMate AI Service")
+    gr.Markdown("FastAPI OCR · Summarization · TTS")
+    gr.Markdown("**Endpoints:** `/ocr` · `/tts` · `/batch` · `/health`")
+
+# Mount Gradio at "/" – adds /info, /queue/status, etc. that HF expects.
+# All existing FastAPI routes remain accessible alongside.
+app = gr.mount_gradio_app(app, demo, path="/")
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 7860))

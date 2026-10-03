@@ -9,3 +9,4 @@ supabase
 pymupdf
 aiohttp>=3.10.11
 gTTS
+gradio
