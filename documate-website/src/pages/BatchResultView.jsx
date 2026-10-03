@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { generateTTS } from "../services/api";
 import {
@@ -6,22 +6,17 @@ import {
   BarChart2, Globe, CheckCircle, AlertCircle, BookOpen, Volume2, Loader2
 } from "lucide-react";
 
-function AudioPlayer({ text, lang = "en", label = "Listen to Summary" }) {
+function AudioPlayer({ text, lang = "en", label = "Listen to Summary", documentId, documentIds }) {
   const [audioUrl, setAudioUrl] = useState(null);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
-  const audioRef = useRef(null);
-
-  useEffect(() => () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }, [audioUrl]);
-
   const handleGenerate = async () => {
     if (!text?.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const url = await generateTTS(text, lang);
+      const url = await generateTTS(text, lang, documentId, documentIds);
       setAudioUrl(url);
-      setTimeout(() => audioRef.current?.play(), 100);
     } catch (err) {
       setError(err.message || "TTS failed.");
     } finally {
@@ -36,21 +31,29 @@ function AudioPlayer({ text, lang = "en", label = "Listen to Summary" }) {
           <Volume2 size={15} className="text-blue-500" />
           <span className="text-xs font-semibold text-slate-600">{label}</span>
         </div>
-        {!audioUrl && (
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
-          >
-            {loading
-              ? <><Loader2 size={12} className="animate-spin" /> Generating…</>
-              : <><Volume2 size={12} /> Generate Audio</>}
-          </button>
-        )}
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+        >
+          {loading
+            ? <><Loader2 size={12} className="animate-spin" /> Generating…</>
+            : <><Volume2 size={12} /> {audioUrl ? "Regenerate Audio" : "Generate Audio"}</>}
+        </button>
       </div>
       {error && <p className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{error}</p>}
       {audioUrl && (
-        <audio ref={audioRef} controls className="w-full h-9 rounded-lg" src={audioUrl}>
+        <audio
+          controls
+          className="w-full h-9 rounded-lg"
+          src={audioUrl}
+          onError={() => setError("Audio could not be loaded. Generate it again and retry playback.")}
+          onLoadedMetadata={(event) => {
+            if (event.currentTarget.duration === 0) {
+              setError("The generated audio is empty. Generate it again.");
+            }
+          }}
+        >
           Your browser does not support the audio element.
         </audio>
       )}
@@ -82,10 +85,31 @@ const categoryColor = (cat) => {
   return map[cat] || "slate";
 };
 
+function getSummaryFallback(summary, hasText, combined = false) {
+  const text = typeof summary === "string" ? summary.trim() : "";
+  if (/^(?:combined\s+)?summary unavailable\b/i.test(text)) {
+    return "The AI summary could not be generated. Please try again later.";
+  }
+  if (/^no readable text was extracted\b/i.test(text)) {
+    return combined
+      ? "No readable text was extracted, so a combined summary could not be generated."
+      : "No readable text was extracted, so a summary could not be generated.";
+  }
+  if (!text) {
+    return hasText
+      ? "No summary was returned for this document. Please try again."
+      : combined
+        ? "No readable text was extracted, so a combined summary could not be generated."
+        : "No readable text was extracted, so a summary could not be generated.";
+  }
+  return null;
+}
+
 
 function FileCard({ item, index }) {
   const [open, setOpen] = useState(false);
   const isSuccess = item.status !== "failed";
+  const summaryFallback = getSummaryFallback(item.summary, Boolean(item.text));
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all hover:shadow-md">
@@ -137,7 +161,12 @@ function FileCard({ item, index }) {
       {open && isSuccess && (
         <div className="border-t border-slate-100 px-5 py-5 space-y-5 bg-slate-50/50">
           {/* Summary */}
-          {item.summary && (
+          {summaryFallback ? (
+            <div>
+              <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">AI Summary</h5>
+              <p className="text-sm italic text-slate-500">{summaryFallback}</p>
+            </div>
+          ) : item.summary && (
             <div>
               <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">AI Summary</h5>
               <p className="text-sm text-slate-700 leading-relaxed">{item.summary}</p>
@@ -169,8 +198,13 @@ function FileCard({ item, index }) {
           )}
 
           {/* TTS Audio Player */}
-          {item.summary && item.summary !== "Summary unavailable (rate limit)." && (
-            <AudioPlayer text={item.summary} lang={item.language || "en"} label="🔊 Listen to this summary" />
+          {item.summary && !summaryFallback && (
+            <AudioPlayer
+              text={item.summary}
+              lang={item.summary_language || item.language || "en"}
+              label="🔊 Listen to this summary"
+              documentId={item.documentId}
+            />
           )}
         </div>
       )}
@@ -179,8 +213,13 @@ function FileCard({ item, index }) {
 }
 
 
-function CombinedSummarySection({ combinedText, combinedSummary, batchInfo }) {
+function CombinedSummarySection({ combinedText, combinedSummary, batchInfo, documentIds }) {
   const [showText, setShowText] = useState(false);
+  const summaryFallback = getSummaryFallback(
+    combinedSummary?.summary,
+    Boolean(combinedText?.trim()),
+    true
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
@@ -190,16 +229,16 @@ function CombinedSummarySection({ combinedText, combinedSummary, batchInfo }) {
         </div>
         <div>
           <h3 className="font-bold text-slate-800">Combined Summary</h3>
-          <p className="text-xs text-slate-400">Unified summary across all uploaded documents</p>
+          <p className="text-xs text-slate-400">Per-document summaries combined so every upload is represented</p>
         </div>
       </div>
 
-      {/* Summary text */}
-      {combinedSummary?.summary ? (
-        <p className="text-sm text-slate-700 leading-relaxed">{combinedSummary.summary}</p>
-      ) : (
-        <p className="text-sm text-slate-400 italic">No combined summary available.</p>
-      )}
+          {/* Summary text */}
+          {!summaryFallback ? (
+            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{combinedSummary.summary}</p>
+          ) : (
+            <p className="text-sm italic text-slate-500">{summaryFallback}</p>
+          )}
 
       {/* Tags */}
       {combinedSummary?.tags?.length > 0 && (
@@ -221,8 +260,13 @@ function CombinedSummarySection({ combinedText, combinedSummary, batchInfo }) {
       )}
 
       {/* TTS for combined summary */}
-      {combinedSummary?.summary && combinedSummary.summary !== "Combined summary unavailable (rate limit)." && (
-        <AudioPlayer text={combinedSummary.summary} lang={batchInfo?.language || "en"} label="🔊 Listen to combined summary" />
+      {combinedSummary?.summary && !summaryFallback && (
+        <AudioPlayer
+          text={combinedSummary.summary}
+          lang={combinedSummary.language || batchInfo?.summary_language || "en"}
+          label="🔊 Listen to combined summary"
+          documentIds={documentIds}
+        />
       )}
 
       {/* Raw combined text toggle */}
@@ -361,7 +405,12 @@ export default function BatchResultView() {
       )}
 
       {view === "combined" && (
-        <CombinedSummarySection combinedText={combined_text} combinedSummary={combined_summary} batchInfo={batch_info} />
+        <CombinedSummarySection
+          combinedText={combined_text}
+          combinedSummary={combined_summary}
+          batchInfo={batch_info}
+          documentIds={per_file.map(item => item.documentId).filter(Boolean)}
+        />
       )}
     </div>
   );

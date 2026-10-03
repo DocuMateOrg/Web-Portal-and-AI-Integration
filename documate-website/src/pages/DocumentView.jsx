@@ -1,24 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { generateTTS } from "../services/api";
 import { Volume2, Loader2, AlertCircle } from "lucide-react";
 
-function AudioPlayer({ text, lang = "en" }) {
-  const [audioUrl, setAudioUrl] = useState(null);
+function AudioPlayer({ text, lang = "en", documentId, initialAudioUrl }) {
+  const [audioUrl, setAudioUrl] = useState(initialAudioUrl || null);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
-  const audioRef = useRef(null);
-
-  // Revoke old object URL when component unmounts to avoid memory leaks
-  useEffect(() => () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }, [audioUrl]);
-
   const handleGenerate = async () => {
     if (!text?.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const url = await generateTTS(text, lang);
-      setAudioUrl(url); // This is now a direct Firebase URL
+      const url = await generateTTS(text, lang, documentId);
+      setAudioUrl(url);
     } catch (err) {
       setError(err.message || "TTS failed.");
     } finally {
@@ -34,17 +29,15 @@ function AudioPlayer({ text, lang = "en" }) {
           <span className="text-sm font-semibold text-slate-700">🔊 Listen to Summary</span>
         </div>
 
-        {!audioUrl && (
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
-          >
-            {loading
-              ? <><Loader2 size={14} className="animate-spin" /> Generating…</>
-              : <><Volume2 size={14} /> Generate Audio</>}
-          </button>
-        )}
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
+        >
+          {loading
+            ? <><Loader2 size={14} className="animate-spin" /> Generating…</>
+            : <><Volume2 size={14} /> {audioUrl ? "Regenerate Audio" : "Generate Audio"}</>}
+        </button>
       </div>
 
       {error && (
@@ -55,7 +48,17 @@ function AudioPlayer({ text, lang = "en" }) {
       )}
 
       {audioUrl && (
-        <audio ref={audioRef} controls className="w-full h-10 rounded-lg" src={audioUrl}>
+        <audio
+          controls
+          className="w-full h-10 rounded-lg"
+          src={audioUrl}
+          onError={() => setError("Audio could not be loaded. Generate it again and retry playback.")}
+          onLoadedMetadata={(event) => {
+            if (event.currentTarget.duration === 0) {
+              setError("The generated audio is empty. Generate it again.");
+            }
+          }}
+        >
           Your browser does not support the audio element.
         </audio>
       )}
@@ -84,7 +87,7 @@ export default function DocumentView() {
     );
   }
 
-  const { ocr, summary, document_url } = data;
+  const { ocr, summary, document_url, documentId, audio_url } = data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-200 p-8">
@@ -155,7 +158,12 @@ export default function DocumentView() {
 
           {/* TTS Audio Player */}
           {summary?.summary && (
-            <AudioPlayer text={summary.summary} lang={ocr?.language || "en"} />
+            <AudioPlayer
+              text={summary.summary}
+              lang={summary?.language || ocr?.language || "en"}
+              documentId={documentId}
+              initialAudioUrl={audio_url}
+            />
           )}
         </div>
 

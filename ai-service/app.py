@@ -1,22 +1,63 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.responses import JSONResponse
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from preprocess import preprocess_image
 from ocr import extract_text, clean_text
-from summary import generate_summary
+from summary import detect_summary_language, generate_summary
 from tts import text_to_speech_bytes
 import fitz
 import io
-from fastapi.responses import JSONResponse, StreamingResponse
+import logging
 from google.genai.errors import ClientError, ServerError
-from firebase_utils import upload_to_firebase, upload_bytes_to_firebase
-import tempfile
+from supabase_storage import upload_bytes
 import os
 import uuid
 
 app = FastAPI()
+logger = logging.getLogger(__name__)
+
+
+def _gemini_client_error_response(error: ClientError, operation: str) -> JSONResponse:
+    status_code = getattr(error, "code", 502)
+    error_text = str(error).lower()
+    is_daily_quota = (
+        status_code == 429
+        and (
+            "generaterequestsperday" in error_text
+            or "per_day" in error_text
+            or "per day" in error_text
+        )
+    )
+
+    if is_daily_quota:
+        message = (
+            "The Gemini daily request quota is exhausted for the available models. "
+            "Wait for the quota to reset or enable billing/increase the project's quota."
+        )
+        retryable = False
+        error_code = "daily_quota_exhausted"
+    elif status_code == 429:
+        message = "Gemini is temporarily rate-limited. Please wait a little and try again."
+        retryable = True
+        error_code = "rate_limited"
+    else:
+        message = "Gemini could not process this request. Check the request and API configuration."
+        retryable = False
+        error_code = "gemini_request_failed"
+
+    logger.error("Gemini %s failed with HTTP %s (%s)", operation, status_code, error_code)
+    return JSONResponse(
+        status_code=status_code if 400 <= status_code < 500 else 502,
+        content={
+            "status": "error",
+            "code": error_code,
+            "message": message,
+            "retryable": retryable,
+        },
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +67,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount the local uploads directory 
+# Keep serving files uploaded by older versions of the service.
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
@@ -46,10 +87,10 @@ async def tts_endpoint(text: str = Form(...), lang: str = Form("en")):
     try:
         audio_bytes = text_to_speech_bytes(text.strip(), lang)
         
-        # Upload to Firebase
+        # Upload generated audio to Supabase Storage.
         file_id = str(uuid.uuid4())
         destination = f"audio/{file_id}.mp3"
-        audio_url = upload_bytes_to_firebase(audio_bytes, destination, "audio/mpeg")
+        audio_url = upload_bytes(audio_bytes, destination, "audio/mpeg")
         
         return {
             "status": "success",
@@ -73,17 +114,6 @@ async def ocr_endpoint(files: List[UploadFile] = File(...)):
             filename = file.filename or ""
             content_type = file.content_type or ""
             
-            # Save temporarily to upload to Firebase
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as tmp:
-                tmp.write(file_bytes)
-                tmp_path = tmp.name
-            
-            # Upload to Firebase
-            doc_id = str(uuid.uuid4())
-            destination = f"documents/{doc_id}_{filename}"
-            document_url = upload_to_firebase(tmp_path, destination, content_type)
-            os.unlink(tmp_path) # cleanup
-            
             is_pdf = filename.lower().endswith('.pdf') or content_type == 'application/pdf'
             
             if is_pdf:
@@ -105,6 +135,7 @@ async def ocr_endpoint(files: List[UploadFile] = File(...)):
                 all_texts.append(page_ocr_result.get("text", ""))
                 all_languages.append(page_ocr_result.get("language", "mixed"))
                 all_confidences.append(page_ocr_result.get("confidence", 0.0))
+
             else:
                 # Process single image
                 processed = preprocess_image(file_bytes)
@@ -113,14 +144,22 @@ async def ocr_endpoint(files: List[UploadFile] = File(...)):
                 all_texts.append(page_ocr_result.get("text", ""))
                 all_languages.append(page_ocr_result.get("language", "mixed"))
                 all_confidences.append(page_ocr_result.get("confidence", 0.0))
+
+            doc_id = str(uuid.uuid4())
+            safe_filename = os.path.basename(filename.replace("\\", "/")) or "document"
+            destination = f"documents/{doc_id}_{safe_filename}"
+            document_url = upload_bytes(file_bytes, destination, content_type)
     except ClientError as e:
+        return _gemini_client_error_response(e, "OCR")
+    except ServerError as e:
+        logger.error("Gemini OCR models are temporarily unavailable: %s", e)
         return JSONResponse(
-            status_code=429,
+            status_code=503,
             content={
                 "status": "error",
-                "message": f"Gemini API Error: {str(e)}",
-                "details": "You may have exceeded the daily API rate limit. Please try again later or check your API key quotas."
-            }
+                "message": "Gemini is temporarily overloaded. Please wait a moment and retry the upload.",
+                "retryable": True,
+            },
         )
 
     combined_text = "\n\n".join(all_texts)
@@ -139,18 +178,40 @@ async def ocr_endpoint(files: List[UploadFile] = File(...)):
 
     try:
         cleaned = await clean_text(combined_text)
-        summary_result = await generate_summary(cleaned.get("cleaned_text", combined_text))
-    except (ClientError, ServerError) as e:
+    except (ClientError, ServerError):
         cleaned = {"cleaned_text": combined_text, "language": final_language}
-        summary_result = {"summary": "Summary unavailable due to API rate limits.", "tags": [], "category": "other"}
 
+    summary_language = detect_summary_language(combined_text)
+    if combined_text.strip():
+        try:
+            summary_result = await generate_summary(combined_text, summary_language)
+        except (ClientError, ServerError):
+            summary_result = {
+                "summary": "Summary unavailable: the AI service is busy or its quota is exhausted. Please try again later.",
+                "tags": [],
+                "category": "other",
+                "language": summary_language,
+            }
+    else:
+        summary_result = {
+            "summary": "No readable text was extracted, so a summary could not be generated.",
+            "tags": [],
+            "category": "other",
+            "language": "en",
+        }
 
-    return {
+    response_data = {
         "ocr": final_ocr_result,
         "cleaned_text": cleaned,
         "summary": summary_result,
         "document_url": document_url
     }
+
+    # Ensure UTF-8 encoding in response
+    return JSONResponse(
+        content=response_data,
+        media_type="application/json; charset=utf-8"
+    )
 
 
 async def _ocr_file(file: UploadFile) -> dict:
@@ -178,16 +239,10 @@ async def _ocr_file(file: UploadFile) -> dict:
     else:
         ocr_result = await extract_text(preprocess_image(file_bytes))
 
-    # Save temporarily to upload to Firebase
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as tmp:
-        tmp.write(file_bytes)
-        tmp_path = tmp.name
-    
-    # Upload to Firebase
     doc_id = str(uuid.uuid4())
-    destination = f"documents/{doc_id}_{filename}"
-    document_url = upload_to_firebase(tmp_path, destination, content_type)
-    os.unlink(tmp_path) 
+    safe_filename = os.path.basename(filename.replace("\\", "/")) or "document"
+    destination = f"documents/{doc_id}_{safe_filename}"
+    document_url = upload_bytes(file_bytes, destination, content_type)
 
     text = ocr_result.get("text") or ""
     word_count = len(text.split()) if text.strip() else 0
@@ -230,30 +285,38 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
     try:
         for file in files:
             raw_results.append(await _ocr_file(file))
-    except (ClientError, ServerError) as e:
+    except ClientError as e:
+        return _gemini_client_error_response(e, "batch OCR")
+    except ServerError as e:
+        logger.error("Gemini batch OCR models are temporarily unavailable: %s", e)
         return JSONResponse(
-            status_code=429,
+            status_code=503,
             content={
                 "status": "error",
-                "message": f"Gemini API Error: {str(e)}",
-                "details": "Daily API quota exceeded or model overloaded. Please try again later.",
+                "message": "Gemini is temporarily overloaded. Please wait a moment and retry the batch.",
+                "retryable": True,
             },
         )
 
     per_file_results: list[dict] = []
-    is_single_batch = len(raw_results) == 1
-
     for item in raw_results:
-        file_summary = {"summary": "", "tags": [], "category": "other"}
-        
+        summary_language = detect_summary_language(item["text"])
+        file_summary = {
+            "summary": "No readable text was extracted, so a summary could not be generated.",
+            "tags": [],
+            "category": "other",
+            "language": summary_language,
+        }
+
         if item["text"].strip():
             try:
-                file_summary = await generate_summary(item["text"])
+                file_summary = await generate_summary(item["text"], summary_language)
             except (ClientError, ServerError):
                 file_summary = {
-                    "summary": "Summary unavailable (rate limit or model overloaded).",
+                    "summary": "Summary unavailable: the AI service is busy or its quota is exhausted. Please try again later.",
                     "tags": [],
                     "category": "other",
+                    "language": summary_language,
                 }
 
         per_file_results.append(
@@ -264,6 +327,7 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
                 "metadata": item.get("metadata", {"pages": 1, "word_count": 0}),
                 "text": item["text"],
                 "summary": file_summary.get("summary", ""),
+                "summary_language": summary_language,
                 "tags": file_summary.get("tags", []),
                 "category": file_summary.get("category", "other"),
                 "document_url": item.get("document_url")
@@ -284,24 +348,34 @@ async def batch_endpoint(files: List[UploadFile] = File(...)):
     unique_langs = set(r["language"] for r in raw_results)
     final_language = list(unique_langs)[0] if len(unique_langs) == 1 else "mixed"
 
-    combined_summary = {"summary": "", "tags": [], "category": "other"}
+    summary_language = (
+        "si"
+        if per_file_results and all(item["summary_language"] == "si" for item in per_file_results)
+        else "en"
+    )
     if combined_text.strip():
         try:
-            cleaned = await clean_text(combined_text)
-            combined_summary = await generate_summary(
-                cleaned.get("cleaned_text", combined_text)
-            )
+            combined_summary = await generate_summary(combined_text, summary_language)
         except (ClientError, ServerError):
             combined_summary = {
-                "summary": "Combined summary unavailable (rate limit or model overloaded).",
+                "summary": "Combined summary unavailable: the AI service is busy or its quota is exhausted. Please try again later.",
                 "tags": [],
                 "category": "other",
+                "language": summary_language,
             }
+    else:
+        combined_summary = {
+            "summary": "No readable text was extracted from the uploaded documents, so a combined summary could not be generated.",
+            "tags": [],
+            "category": "other",
+            "language": summary_language,
+        }
 
     return {
         "batch_info": {
             "total_documents": total_docs,
             "language": final_language,
+            "summary_language": summary_language,
             "avg_confidence": round(avg_confidence, 4),
         },
        

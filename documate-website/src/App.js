@@ -6,6 +6,7 @@ import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import BatchResultView from "./pages/BatchResultView";
+import Settings from "./pages/Settings";
 import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
@@ -48,6 +49,14 @@ function App() {
           element={
             <PrivateRoute>
               <BatchResultView />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Settings />
             </PrivateRoute>
           }
         />

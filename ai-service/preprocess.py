@@ -16,30 +16,26 @@ import numpy as np
 
 def preprocess_image(file_bytes: bytes):
     """
-    Preprocess image received as bytes.
-    Steps:
-    - Decode image
-    - Convert to grayscale
-    - Denoise
-    - Binarize (Otsu)
+    Decode an image without removing color or fine character details.
+
+    Small images are enlarged modestly to make text easier for the vision model
+    to read. Avoid thresholding here because it can erase distinguishing marks
+    in Sinhala and other complex scripts.
     """
-
-    # Convert bytes to numpy array
     npimg = np.frombuffer(file_bytes, np.uint8)
-
-    # Decode image
-    img = cv2.imdecode(npimg, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
     if img is None:
         raise ValueError("Invalid image data")
 
-    # Denoise
-    img = cv2.fastNlMeansDenoising(img)
-
-    # Binarization
-    _, img = cv2.threshold(
-        img, 0, 255,
-        cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    )
+    height, width = img.shape[:2]
+    longest_side = max(height, width)
+    if longest_side < 1800:
+        scale = min(2.0, 1800 / longest_side)
+        img = cv2.resize(
+            img,
+            (round(width * scale), round(height * scale)),
+            interpolation=cv2.INTER_CUBIC,
+        )
 
     return img

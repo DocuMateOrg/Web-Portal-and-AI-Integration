@@ -32,18 +32,6 @@ const LandingPage = () => {
           <span className="text-xl font-bold tracking-tight">DocuMate</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-8 bg-slate-50 px-8 py-2.5 rounded-full border border-slate-100">
-          {["Home", "About us", "Features", "Contact us"].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(" ", "")}`}
-              className="text-sm font-medium text-slate-600 hover:text-[#1D4ED8] transition-colors"
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-
         <div className="flex items-center gap-3">
          
           <button
@@ -86,9 +74,6 @@ const LandingPage = () => {
                 Get Started Free <ArrowRight size={18} />
               </button>
 
-              <button className="border border-slate-200 px-6 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all">
-                Watch Demo
-              </button>
             </div>
 
             <div className="flex gap-12 border-t border-slate-100 pt-8">
@@ -206,7 +191,7 @@ const LandingPage = () => {
 
       {/* --- FOOTER --- */}
       <footer className="bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-200 pt-16 pb-8 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-12 mb-12">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="bg-[#1D4ED8] p-1.5 rounded-lg">
@@ -220,16 +205,6 @@ const LandingPage = () => {
               <Twitter className="w-5 h-5 text-slate-600 cursor-pointer hover:text-blue-400" />
               <Github className="w-5 h-5 text-slate-600 cursor-pointer hover:text-black" />
             </div>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-6">Company</h4>
-            <ul className="space-y-3 text-sm text-slate-600 font-medium">
-              <li className="hover:text-blue-600 cursor-pointer">Home</li>
-              <li className="hover:text-blue-600 cursor-pointer">About Us</li>
-              <li className="hover:text-blue-600 cursor-pointer">Features</li>
-              <li className="hover:text-blue-600 cursor-pointer">Contact Us</li>
-            </ul>
           </div>
 
           <div>
