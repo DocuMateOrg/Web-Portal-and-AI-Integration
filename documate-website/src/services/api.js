@@ -1,6 +1,6 @@
 import { auth } from "../firebase";
 
-const AI_BASE = "http://localhost:8000";
+const AI_BASE = process.env.REACT_APP_AI_URL || "http://localhost:8000";
 
 export const uploadDocument = async (file) => {
   const formData = new FormData();
@@ -62,10 +62,14 @@ export const generateTTS = async (text, lang = "en", documentId = null, document
   }
 
   const result = await response.json();
-  if (documentId) {
-    await saveDocumentAudio(documentId, result.audio_url);
-  } else if (documentIds?.length) {
-    await saveCombinedDocumentAudio(documentIds, result.audio_url);
+  try {
+    if (documentId) {
+      await saveDocumentAudio(documentId, result.audio_url);
+    } else if (documentIds?.length) {
+      await saveCombinedDocumentAudio(documentIds, result.audio_url);
+    }
+  } catch (persistErr) {
+    console.warn("Could not persist audio URL to backend:", persistErr?.message || persistErr);
   }
   return result.audio_url;
 };

@@ -1,11 +1,14 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
-const keyPath = process.env.FIREBASE_KEY_PATH || './serviceAccountKey.json';
+const path = require('path');
+const keyPath = path.isAbsolute(process.env.FIREBASE_KEY_PATH)
+  ? process.env.FIREBASE_KEY_PATH
+  : path.resolve(__dirname, process.env.FIREBASE_KEY_PATH);
 
 let bucket = null;
 if (fs.existsSync(keyPath)) {
   admin.initializeApp({
-    credential: admin.credential.cert(require(require('path').resolve(keyPath))),
+    credential: admin.credential.cert(require(keyPath)),
     storageBucket: process.env.FIREBASE_BUCKET,
   });
   bucket = admin.storage().bucket();

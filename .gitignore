@@ -1,10 +1,14 @@
 node_modules/
 .env
 **/.env
+# Firebase Admin SDK private credentials
 serviceAccountKey.json
+**/serviceAccountKey.json
+_firebase_key.json
 __pycache__/
 *.pyc
 venv/
+.venv/
 ai-service/uploads/
 *.mp3
 build/

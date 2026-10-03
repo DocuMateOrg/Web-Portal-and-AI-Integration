@@ -1,4 +1,15 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
+const { validateBackendEnvironment } = require('./config/validateEnvironment');
+try {
+  const { firebaseKeyPath } = validateBackendEnvironment();
+  process.env.FIREBASE_KEY_PATH = firebaseKeyPath;
+} catch (error) {
+  console.error(`[startup] ${error.message}`);
+  process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
